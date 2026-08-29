@@ -1,0 +1,202 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: background 0.35s ease, box-shadow 0.35s ease, backdrop-filter 0.35s ease;
+  background: transparent;
+}
+
+.scrolled {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: saturate(180%) blur(18px);
+  box-shadow: 0 1px 0 var(--line), 0 12px 24px -18px rgba(9, 55, 102, 0.25);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--ink);
+}
+
+.logoMark {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  filter: drop-shadow(0 6px 12px rgba(15, 127, 191, 0.35));
+  animation: floaty 5s ease-in-out infinite;
+}
+
+.brandText b {
+  font-weight: 700;
+  color: var(--brand-700);
+  margin-right: 4px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.link {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  position: relative;
+  padding: 8px 16px;
+  border-radius: 999px;
+  transition: color 0.25s ease, background 0.25s ease;
+}
+.link:hover {
+  color: var(--brand-700);
+  background: rgba(15, 127, 191, 0.06);
+}
+
+.linkActive {
+  color: var(--brand-700);
+  font-weight: 700;
+  background: linear-gradient(135deg, rgba(15, 127, 191, 0.12), rgba(20, 201, 161, 0.14));
+  border: 1px solid rgba(15, 127, 191, 0.18);
+}
+.linkActive:hover {
+  background: linear-gradient(135deg, rgba(15, 127, 191, 0.18), rgba(20, 201, 161, 0.2));
+  color: var(--brand-900);
+}
+
+/* -------- action icons -------- */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.iconBtn {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.2s ease;
+}
+.iconBtn:hover {
+  background: rgba(15, 127, 191, 0.08);
+  color: var(--brand-700);
+  border-color: rgba(15, 127, 191, 0.18);
+}
+.iconBtn:active {
+  transform: scale(0.94);
+}
+.authDot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #14c9a1, #0f7fbf);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(20, 201, 161, 0.35);
+}
+.badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--gradient-btn);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 10px -3px rgba(15, 127, 191, 0.5);
+}
+
+.burger {
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+.burger span {
+  width: 22px;
+  height: 2px;
+  background: var(--ink);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  border-radius: 2px;
+}
+.burgerOpen span:nth-child(1) {
+  transform: translateY(8px) rotate(45deg);
+}
+.burgerOpen span:nth-child(2) {
+  opacity: 0;
+}
+.burgerOpen span:nth-child(3) {
+  transform: translateY(-8px) rotate(-45deg);
+}
+
+@media (max-width: 860px) {
+  .burger {
+    display: flex;
+  }
+  .nav {
+    position: absolute;
+    top: 100%;
+    left: 12px;
+    right: 12px;
+    background: #fff;
+    padding: 24px;
+    border-radius: var(--radius-md);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+  }
+  .nav.open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .link {
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 480px) {
+  .iconBtn {
+    width: 38px;
+    height: 38px;
+  }
+}
