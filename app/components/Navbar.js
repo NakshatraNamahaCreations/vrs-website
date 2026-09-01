@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import LoginModal from "./LoginModal";
@@ -55,9 +56,14 @@ export default function Navbar() {
     <header className={`${styles.header} ${scrolled ? styles.scrolled : ""}`}>
       <div className={`container ${styles.inner}`}>
         <Link href="/" className={styles.brand} onClick={() => setOpen(false)}>
-          <span className={styles.brandText}>
-            <b>VRS</b> Water Purifiers
-          </span>
+          <Image
+            src="/images/vrs-logo.png"
+            alt="VRS Water Purifiers"
+            width={240}
+            height={72}
+            priority
+            className={styles.brandLogo}
+          />
         </Link>
 
         <nav className={`${styles.nav} ${open ? styles.open : ""}`}>

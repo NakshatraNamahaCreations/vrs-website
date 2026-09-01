@@ -26,7 +26,7 @@ import { FaWhatsapp } from "react-icons/fa6";
 import { services, slugifyService } from "../services-data";
 import styles from "./service.module.css";
 
-const WHATSAPP_NUMBER = "919876543210";
+const WHATSAPP_NUMBER = "919008155065";
 
 const ICONS = {
   wrench: HiOutlineWrenchScrewdriver,

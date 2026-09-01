@@ -10,7 +10,7 @@ import {
 import styles from "./page.module.css";
 import Bestsellers from "./components/Bestsellers";
 import Testimonials from "./components/Testimonials";
-import { slugify } from "./products/data";
+import ShopByCategory from "./components/ShopByCategory";
 import { services as siteServices, slugifyService } from "./services/services-data";
 
 const SERVICE_ICONS = {
@@ -52,19 +52,6 @@ const brands = [
   { name: "AO Smith", image: "/images/ao-smith.jpg" },
   { name: "Livpure", image: "/images/liv-pure.jpg" },
   { name: "Pureit", image: "/images/pureit.jpg" },
-];
-
-const shopCategories = [
-  { name: "Aquaguard Spare Parts", image: "/images/spare-parts.png" },
-  { name: "Commercial RO", image: "/images/commercial-ro.png" },
-  { name: "Commercial Water Purifier", image: "/images/commercial-purifier.png" },
-  { name: "Hot & Ambient", image: "/images/hot-ambient.png" },
-  { name: "RO UV UF MTDS", image: "/images/ro-uv-uf.png" },
-  { name: "RO + UV Water Purifier", image: "/images/ro-uv.png" },
-  { name: "Under Sink Models", image: "/images/under-sink.png" },
-  { name: "UV + UF Water Purifier", image: "/images/uv-uf.png" },
-  { name: "Water Purifier Accessories", image: "/images/accessories.png" },
-  { name: "Water Softeners", image: "/images/water-softners.png" },
 ];
 
 export default function Home() {
@@ -114,36 +101,7 @@ export default function Home() {
       </section>
 
       {/* SHOP BY CATEGORY */}
-      <section className={`section ${styles.shopSection}`}>
-        <div className="container">
-          <div className={styles.shopHead}>
-            <span className="eyebrow" style={{ justifyContent: "center" }}>Browse Range</span>
-            <h2>
-              Shop by <span className="gradient-text">Category</span>
-            </h2>
-            <p>
-              Find the right purifier for your kitchen, workspace or business —
-              handpicked across every leading technology and format.
-            </p>
-          </div>
-
-          <div className={styles.shopGrid}>
-            {shopCategories.map((c) => (
-              <Link
-                key={c.name}
-                href={`/categories/${slugify(c.name)}`}
-                className={styles.shopCard}
-              >
-                <div className={styles.shopImg}>
-                  <img src={c.image} alt={c.name} loading="lazy" />
-                  <span className={styles.shopOverlay} aria-hidden />
-                </div>
-                <span className={styles.shopLabel}>{c.name}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ShopByCategory />
 
       {/* BESTSELLERS */}
       <Bestsellers />
@@ -301,8 +259,8 @@ export default function Home() {
             <Link href="/contact" className="btn btn-light">
               Book a free demo
             </Link>
-            <a href="tel:+919999999999" className="btn btn-ghost" style={{ color: "#fff", background: "rgba(255,255,255,0.06)" }}>
-              Call +91 99999 99999
+            <a href="tel:+919008155065" className="btn btn-ghost" style={{ color: "#fff", background: "rgba(255,255,255,0.06)" }}>
+              Call +91 9008155065
             </a>
           </div>
         </div>

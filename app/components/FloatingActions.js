@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import styles from "./FloatingActions.module.css";
 
-const PHONE = "+919999999999";
-const WHATSAPP = "919999999999";
+const PHONE = "+919008155065";
+const WHATSAPP = "919008155065";
 const WHATSAPP_MSG = "Hi VRS! I'd like to know more about your water purifiers.";
 
 export default function FloatingActions() {

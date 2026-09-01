@@ -15,8 +15,9 @@ import {
   HiOutlineShoppingBag,
   HiChevronRight,
 } from "react-icons/hi2";
+import { api } from "../../lib/api";
 import { addToCart, resolveImg } from "../../lib/cart";
-import { products, slugify } from "../data";
+import { slugify } from "../data";
 import styles from "./details.module.css";
 
 function normalizeProduct(raw) {
@@ -53,6 +54,7 @@ export default function ProductDetails() {
   const [activeImg, setActiveImg] = useState(0);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  const [source, setSource] = useState(null);
 
   useEffect(() => {
     setActiveImg(0);
@@ -60,19 +62,35 @@ export default function ProductDetails() {
     setAdded(false);
   }, [slug]);
 
+  // Fetch fresh products from the API on mount so admin edits (image swaps,
+  // price changes, etc.) show up immediately.
+  useEffect(() => {
+    let cancelled = false;
+    api("/api/products?limit=200")
+      .then((res) => {
+        if (cancelled) return;
+        setSource(res.items || []);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setSource([]);
+      });
+    return () => { cancelled = true; };
+  }, []);
+
   const product = useMemo(() => {
-    if (!slug) return null;
-    const raw = products.find((p) => slugify(p.name) === String(slug));
+    if (!slug || !source) return null;
+    const raw = source.find((p) => slugify(p.name) === String(slug));
     return normalizeProduct(raw);
-  }, [slug]);
+  }, [slug, source]);
 
   const related = useMemo(() => {
-    if (!product?.category) return [];
-    return products
+    if (!product?.category || !source) return [];
+    return source
       .filter((p) => p.category === product.category && slugify(p.name) !== slug)
       .slice(0, 4)
       .map(normalizeProduct);
-  }, [product, slug]);
+  }, [product, slug, source]);
 
   const discount = useMemo(() => {
     if (!product || !product.original || product.original <= product.price) return 0;
@@ -90,6 +108,18 @@ export default function ProductDetails() {
     await addToCart({ ...product, qty });
     setTimeout(() => setAdded(false), 1400);
   };
+
+  // `source === null` = fetch still in flight; only render the "not found"
+  // state once we know the API actually didn't return this slug.
+  if (!source) {
+    return (
+      <section className={styles.errorSection}>
+        <div className={`container ${styles.errorInner}`}>
+          <p>Loading…</p>
+        </div>
+      </section>
+    );
+  }
 
   if (!product) {
     return (

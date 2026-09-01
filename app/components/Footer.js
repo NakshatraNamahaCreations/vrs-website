@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import styles from "./Footer.module.css";
 
 const trustBadges = [
@@ -53,9 +54,13 @@ export default function Footer() {
       <div className={`container ${styles.top}`}>
         <div className={styles.brandCol}>
           <div className={styles.brand}>
-            <span>
-              <b>VRS</b> Water Purifiers
-            </span>
+            <Image
+              src="/images/vrs-logo.png"
+              alt="VRS Water Purifiers"
+              width={320}
+              height={96}
+              className={styles.brandLogo}
+            />
           </div>
           <p>
             Every leading water purifier brand under one roof — genuine products,
@@ -110,7 +115,7 @@ export default function Footer() {
             <span className={styles.contactIcon}><ContactIcon name="phone" /></span>
             <div>
               <span>Call directly</span>
-              <a href="tel:+919999999999">+91 99999 99999</a>
+              <a href="tel:+919008155065">+91 9008155065</a>
             </div>
           </div>
           <div className={styles.contactCard}>

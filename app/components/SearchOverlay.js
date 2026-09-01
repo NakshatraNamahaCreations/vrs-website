@@ -6,7 +6,7 @@ import Link from "next/link";
 import { HiXMark, HiMagnifyingGlass, HiArrowRight } from "react-icons/hi2";
 import { api } from "../lib/api";
 import { resolveImg } from "../lib/cart";
-import { products as fallbackProducts, slugify } from "../products/data";
+import { slugify } from "../products/data";
 import styles from "./SearchOverlay.module.css";
 
 export default function SearchOverlay({ open, onClose }) {
@@ -25,7 +25,7 @@ export default function SearchOverlay({ open, onClose }) {
       .then((res) => {
         if (!cancelled) setSource(res.items || []);
       })
-      .catch(() => !cancelled && setSource(fallbackProducts));
+      .catch(() => !cancelled && setSource([]));
     return () => { cancelled = true; };
   }, [open, source]);
 

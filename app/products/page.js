@@ -5,11 +5,7 @@ import Link from "next/link";
 import { HiOutlineShoppingBag, HiCheck } from "react-icons/hi2";
 import { api } from "../lib/api";
 import { addToCart, resolveImg } from "../lib/cart";
-import {
-  categories,
-  products as fallbackProducts,
-  slugify,
-} from "./data";
+import { slugify } from "./data";
 import Toast from "../components/Toast";
 import styles from "./products.module.css";
 
@@ -27,7 +23,9 @@ function normalize(raw) {
 }
 
 export default function ProductsPage() {
-  const [active, setActive] = useState(categories[0]);
+  // Selected category is set once the first fetch resolves (see the effect
+  // that syncs `active` to the first derived category below).
+  const [active, setActive] = useState("");
   const [source, setSource] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -47,7 +45,7 @@ export default function ProductsPage() {
       .catch((err) => {
         if (cancelled) return;
         setError(err.message || "Couldn't load products.");
-        setSource(fallbackProducts.map(normalize));
+        setSource([]);
       })
       .finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
@@ -61,18 +59,43 @@ export default function ProductsPage() {
     contentRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const counts = useMemo(() => {
-    const c = {};
-    (source || []).forEach((p) => (c[p.category] = (c[p.category] || 0) + 1));
-    return c;
+  // Normalize a category string so casing/whitespace variants collapse into
+  // one bucket (e.g. "RO + UV Water Purifier" and "RO+UV WATER PURIFIER" hash
+  // to the same key). This is a display-time patch — the DB still has both
+  // variants and should be de-duplicated properly via the admin.
+  const norm = (s) => String(s || "").toLowerCase().replace(/\s+/g, "").trim();
+
+  // Derive sidebar categories by normalized key. First occurrence wins for
+  // the display label, and counts sum across all variants.
+  const categories = useMemo(() => {
+    const map = new Map(); // normKey → { label, count }
+    (source || []).forEach((p) => {
+      if (!p.category) return;
+      const key = norm(p.category);
+      const bucket = map.get(key);
+      if (bucket) bucket.count += 1;
+      else map.set(key, { label: p.category, count: 1 });
+    });
+    return Array.from(map.entries())
+      .map(([key, v]) => ({ key, label: v.label, count: v.count }))
+      .sort((a, b) => a.label.localeCompare(b.label));
   }, [source]);
 
+  // Once categories are known, default the active tab to the first one so the
+  // right-hand column has something to render on first paint.
+  useEffect(() => {
+    if (!active && categories.length > 0) setActive(categories[0].key);
+  }, [active, categories]);
+
   const items = useMemo(
-    () => (source || []).filter((p) => p.category === active),
+    () => (source || []).filter((p) => norm(p.category) === active),
     [active, source]
   );
 
-  const countFor = (cat) => counts[cat] || 0;
+  const activeLabel = useMemo(
+    () => categories.find((c) => c.key === active)?.label || "",
+    [categories, active]
+  );
 
   const onAddToCart = async (product) => {
     setJustAdded(product.id);
@@ -109,16 +132,16 @@ export default function ProductsPage() {
             <span className={styles.sidebarLabel}>Categories</span>
             <ul className={styles.categoryList}>
               {categories.map((c) => {
-                const isActive = c === active;
+                const isActive = c.key === active;
                 return (
-                  <li key={c}>
+                  <li key={c.key}>
                     <button
-                      onClick={() => onPickCategory(c)}
+                      onClick={() => onPickCategory(c.key)}
                       className={`${styles.categoryBtn} ${isActive ? styles.categoryBtnActive : ""}`}
                     >
                       <span className={styles.categoryIndicator} aria-hidden />
-                      <span className={styles.categoryName}>{c}</span>
-                      <span className={styles.categoryCount}>{countFor(c)}</span>
+                      <span className={styles.categoryName}>{c.label}</span>
+                      <span className={styles.categoryCount}>{c.count}</span>
                     </button>
                   </li>
                 );
@@ -136,7 +159,7 @@ export default function ProductsPage() {
             <header className={styles.contentHead}>
               <div>
                 <span className={styles.contentEyebrow}>Showing</span>
-                <h2>{active}</h2>
+                <h2>{activeLabel}</h2>
               </div>
               <span className={styles.resultCount}>
                 <b>{items.length}</b> {items.length === 1 ? "product" : "products"}

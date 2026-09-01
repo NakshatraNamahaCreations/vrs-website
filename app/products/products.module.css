@@ -351,7 +351,8 @@
   position: relative;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: linear-gradient(160deg, #f4fbfe, #e6f4fb);
+  /* background: linear-gradient(160deg, #f4fbfe, #e6f4fb); */
+  background: #ffffff;
   text-decoration: none;
 }
 .cardTitleLink {
@@ -365,7 +366,7 @@
 .imgBox img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .card:hover .imgBox img { transform: scale(1.05); }

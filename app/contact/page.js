@@ -11,15 +11,15 @@ const cards = [
   {
     icon: "phone",
     label: "Call us",
-    primary: "+91 9876543210",
-    href: "tel:+919876543210",
+    primary: "+91 9008155065",
+    href: "tel:+919008155065",
     sub: "Mon – Sat · 9am to 8pm",
   },
   {
     icon: "whatsapp",
     label: "WhatsApp",
-    primary: "+91 9876543210",
-    href: "https://wa.me/919876543210",
+    primary: "+91 9008155065",
+    href: "https://wa.me/919008155065",
     sub: "Instant replies · 24 / 7",
     external: true,
   },
@@ -107,10 +107,10 @@ export default function ContactPage() {
             Saturday, 9 am to 8 pm.
           </p>
           <div className={styles.heroChips}>
-            <a href="tel:+919876543210" className={styles.heroChip}>
-              <HiOutlinePhone /> +91 9876543210
+            <a href="tel:+919008155065" className={styles.heroChip}>
+              <HiOutlinePhone /> +91 9008155065
             </a>
-            <a href="https://wa.me/919876543210" target="_blank" rel="noreferrer" className={`${styles.heroChip} ${styles.heroChipWa}`}>
+            <a href="https://wa.me/919008155065" target="_blank" rel="noreferrer" className={`${styles.heroChip} ${styles.heroChipWa}`}>
               <FaWhatsapp /> Chat on WhatsApp
             </a>
           </div>
@@ -236,7 +236,7 @@ export default function ContactPage() {
                 <div>
                   <b>Talk to a specialist</b>
                   <p>
-                    <a href="tel:+919876543210">+91 9876543210</a><br />
+                    <a href="tel:+919008155065">+91 9008155065</a><br />
                     <a href="mailto:hello@vrswaterpurifiers.in">hello@vrswaterpurifiers.in</a>
                   </p>
                 </div>

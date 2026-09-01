@@ -11,11 +11,7 @@ import {
 } from "react-icons/hi2";
 import { api } from "../../lib/api";
 import { addToCart, resolveImg } from "../../lib/cart";
-import {
-  categories,
-  products as fallbackProducts,
-  slugify,
-} from "../../products/data";
+import { slugify } from "../../products/data";
 import Toast from "../../components/Toast";
 import styles from "./category.module.css";
 
@@ -36,11 +32,6 @@ export default function CategoryPage() {
   const params = useParams();
   const slug = params?.slug;
 
-  const category = useMemo(() => {
-    if (!slug) return null;
-    return categories.find((c) => slugify(c) === String(slug)) || null;
-  }, [slug]);
-
   const [source, setSource] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -59,11 +50,20 @@ export default function CategoryPage() {
       .catch((err) => {
         if (cancelled) return;
         setError(err.message || "Couldn't load products.");
-        setSource(fallbackProducts.map(normalize));
+        setSource([]);
       })
       .finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
   }, []);
+
+  // Derive the category's display name from the fetched product set — pick
+  // any product whose slugified category matches the URL slug and use that
+  // string. Avoids duplicating a hardcoded category list on the client.
+  const category = useMemo(() => {
+    if (!slug || !source) return null;
+    const match = source.find((p) => p.category && slugify(p.category) === String(slug));
+    return match ? match.category : null;
+  }, [slug, source]);
 
   const items = useMemo(() => {
     if (!category || !source) return [];
@@ -76,6 +76,18 @@ export default function CategoryPage() {
     setToast({ open: true, message: product.name });
     setTimeout(() => setJustAdded((id) => (id === product.id ? null : id)), 1200);
   };
+
+  // `source === null` while the fetch is in flight — don't flash "not found"
+  // before we know whether the API knows about this slug.
+  if (loading || source === null) {
+    return (
+      <section className={styles.notFound}>
+        <div className={`container ${styles.notFoundInner}`}>
+          <p>Loading…</p>
+        </div>
+      </section>
+    );
+  }
 
   if (!category) {
     return (

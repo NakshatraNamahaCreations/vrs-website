@@ -139,6 +139,17 @@
   font-weight: 700;
   margin-right: 4px;
 }
+
+.brandLogo {
+  height: 116px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  background: transparent;
+  padding: 10px 16px;
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.95);
+}
+
 .brandCol p {
   color: rgba(255, 255, 255, 0.7);
   margin: 22px 0 22px;
