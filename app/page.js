@@ -67,8 +67,8 @@ export default function Home() {
               <span /> Trusted by 45,000+ Indian households
             </span>
             <h1>
-              Pure water.<br />
-              <span className="gradient-text">Uncompromised<br/> living.</span>
+              Welcome to <br />
+              <span className="gradient-text">VRS Water Purifirers</span>
             </h1>
             <p className={styles.lede}>
               VRS Water Purifiers crafts premium RO, alkaline and copper purification
