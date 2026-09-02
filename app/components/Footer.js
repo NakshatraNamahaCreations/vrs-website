@@ -57,8 +57,8 @@ export default function Footer() {
             <Image
               src="/images/vrs-logo.png"
               alt="VRS Water Purifiers"
-              width={320}
-              height={96}
+              width={440}
+              height={140}
               className={styles.brandLogo}
             />
           </div>

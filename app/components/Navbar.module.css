@@ -7,7 +7,7 @@
 }
 
 .scrolled {
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255);
   backdrop-filter: saturate(180%) blur(18px);
   box-shadow: 0 1px 0 var(--line), 0 12px 24px -18px rgba(9, 55, 102, 0.25);
 }
@@ -43,7 +43,7 @@
 }
 
 .brandLogo {
-  height: 72px;
+  height: 110px;
   width: auto;
   object-fit: contain;
   display: block;

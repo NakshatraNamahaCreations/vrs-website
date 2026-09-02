@@ -59,8 +59,8 @@ export default function Navbar() {
           <Image
             src="/images/vrs-logo.png"
             alt="VRS Water Purifiers"
-            width={240}
-            height={72}
+            width={360}
+            height={100}
             priority
             className={styles.brandLogo}
           />
