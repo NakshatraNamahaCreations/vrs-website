@@ -68,7 +68,7 @@ export default function Home() {
             </span>
             <h1>
               Welcome to <br />
-              <span className="gradient-text">VRS Water Purifirers</span>
+              <span className="gradient-text">VRS Water Purifiers</span>
             </h1>
             <p className={styles.lede}>
               VRS Water Purifiers crafts premium RO, alkaline and copper purification
