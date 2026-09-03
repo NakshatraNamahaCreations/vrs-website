@@ -33,6 +33,7 @@ export default function CategoryPage() {
   const slug = params?.slug;
 
   const [source, setSource] = useState(null);
+  const [categoryDocs, setCategoryDocs] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [justAdded, setJustAdded] = useState(null);
@@ -41,33 +42,55 @@ export default function CategoryPage() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    api("/api/products?limit=200")
-      .then((res) => {
+    // Fetch products + admin-managed categories in parallel so we can resolve
+    // the slug even when zero products exist under it yet.
+    Promise.all([
+      api("/api/products?limit=200"),
+      api("/api/categories").catch(() => ({ items: [] })),
+    ])
+      .then(([prodRes, catRes]) => {
         if (cancelled) return;
-        setSource((res.items || []).map(normalize));
+        setSource((prodRes.items || []).map(normalize));
+        setCategoryDocs(catRes.items || []);
         setError("");
       })
       .catch((err) => {
         if (cancelled) return;
         setError(err.message || "Couldn't load products.");
         setSource([]);
+        setCategoryDocs([]);
       })
       .finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
   }, []);
 
-  // Derive the category's display name from the fetched product set — pick
-  // any product whose slugified category matches the URL slug and use that
-  // string. Avoids duplicating a hardcoded category list on the client.
-  const category = useMemo(() => {
-    if (!slug || !source) return null;
-    const match = source.find((p) => p.category && slugify(p.category) === String(slug));
-    return match ? match.category : null;
-  }, [slug, source]);
+  // Normalize for slug matching — collapses whitespace/case variants of the
+  // same category (e.g. "RO + UV Water Purifier" and "RO+UV WATER PURIFIER").
+  const norm = (s) => slugify(String(s || ""));
 
+  // Resolve display name for the URL slug. Prefer the admin's Category
+  // document (so a freshly-created category with no products yet still gets a
+  // proper landing page), then fall back to deriving from any product.
+  const category = useMemo(() => {
+    if (!slug) return null;
+    const target = String(slug);
+    const catMatch = (categoryDocs || []).find(
+      (c) => c?.slug === target || norm(c?.name) === target
+    );
+    if (catMatch) return catMatch.name;
+    const prodMatch = (source || []).find(
+      (p) => p.category && norm(p.category) === target
+    );
+    return prodMatch ? prodMatch.category : null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [slug, source, categoryDocs]);
+
+  // Filter case-insensitively so variant spellings of the same category all
+  // land in the same product list.
   const items = useMemo(() => {
     if (!category || !source) return [];
-    return source.filter((p) => p.category === category);
+    const key = norm(category);
+    return source.filter((p) => norm(p.category) === key);
   }, [category, source]);
 
   const onAddToCart = async (product) => {
@@ -77,9 +100,9 @@ export default function CategoryPage() {
     setTimeout(() => setJustAdded((id) => (id === product.id ? null : id)), 1200);
   };
 
-  // `source === null` while the fetch is in flight — don't flash "not found"
-  // before we know whether the API knows about this slug.
-  if (loading || source === null) {
+  // Both fetches must resolve before we can decide whether the slug is real,
+  // otherwise we'd flash "not found" during the round-trip.
+  if (loading || source === null || categoryDocs === null) {
     return (
       <section className={styles.notFound}>
         <div className={`container ${styles.notFoundInner}`}>
@@ -148,8 +171,9 @@ export default function CategoryPage() {
               </div>
             ) : (
               items.map((p) => {
+                const hasPrice = p.price != null;
                 const original = p.original || p.price;
-                const discount = original > p.price
+                const discount = hasPrice && original > p.price
                   ? Math.round(((original - p.price) / original) * 100)
                   : 0;
                 const added = justAdded === p.id;
@@ -175,8 +199,8 @@ export default function CategoryPage() {
                       )}
                       <div className={styles.cardFoot}>
                         <div className={styles.priceBlock}>
-                          <b>₹{p.price.toLocaleString("en-IN")}</b>
-                          {original > p.price && (
+                          <b>{hasPrice ? `₹${p.price.toLocaleString("en-IN")}` : "On request"}</b>
+                          {hasPrice && original > p.price && (
                             <s>₹{original.toLocaleString("en-IN")}</s>
                           )}
                         </div>
