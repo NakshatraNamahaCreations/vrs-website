@@ -26,7 +26,8 @@ import {
   setDefaultAddress,
 } from "../lib/address";
 import { useSession } from "../lib/auth";
-import { placeOrder } from "../lib/orders";
+import { placeOrder, verifyRazorpayPayment, markRazorpayFailed } from "../lib/orders";
+import { openRazorpayCheckout } from "../lib/razorpay";
 import { usePincodeLookup } from "../lib/pincode";
 import styles from "./cart.module.css";
 
@@ -98,24 +99,59 @@ export default function CartPage() {
       setPlaceError("Please add a delivery address first.");
       return;
     }
+    if (!isLoggedIn) {
+      setPlaceError("Please log in to complete your payment.");
+      openLoginModal();
+      return;
+    }
     setPlacing(true);
     try {
-      const order = await placeOrder({
+      const { order, razorpay } = await placeOrder({
         shippingAddress: address,
         items: cart,
         subtotal,
         delivery,
         total,
         savings,
-        paymentMethod: "COD",
+        paymentMethod: "RAZORPAY",
       });
-      // Backend already empties the server-side cart on successful order
-      // creation; clear the local cache to keep the UI in sync (also handles
-      // the guest-only local flow).
+
+      if (!razorpay?.key || !razorpay?.orderId) {
+        throw new Error("Payment gateway is not configured. Please try again later.");
+      }
+
+      let paymentResponse;
+      try {
+        paymentResponse = await openRazorpayCheckout({
+          key: razorpay.key,
+          orderId: razorpay.orderId,
+          amount: razorpay.amount,
+          currency: razorpay.currency,
+          description: order.orderNumber ? `Order ${order.orderNumber}` : "VRS order",
+          prefill: {
+            name: address.fullName || "",
+            contact: address.phone || "",
+          },
+        });
+      } catch (err) {
+        // User cancelled or Razorpay reported failure — mark order failed and
+        // route to the failure page. Keep the cart intact for retry.
+        await markRazorpayFailed(order._id);
+        router.push(`/payment-failed?id=${order.orderNumber || order._id}`);
+        return;
+      }
+
+      await verifyRazorpayPayment(order._id, {
+        razorpay_order_id: paymentResponse.razorpay_order_id,
+        razorpay_payment_id: paymentResponse.razorpay_payment_id,
+        razorpay_signature: paymentResponse.razorpay_signature,
+      });
+
+      // Cart is cleared server-side after successful verification; sync local.
       await clearCart();
       router.push(`/thank-you?id=${order.orderNumber || order._id}`);
     } catch (err) {
-      setPlaceError(err.message || "Couldn't place your order. Please try again.");
+      setPlaceError(err.message || "Couldn't complete payment. Please try again.");
     } finally {
       setPlacing(false);
     }
@@ -208,7 +244,8 @@ export default function CartPage() {
   };
 
 
-  const delivery = subtotal >= 999 ? 0 : subtotal === 0 ? 0 : 79;
+  // const delivery = subtotal >= 999 ? 0 : subtotal === 0 ? 0 : 79;
+  const delivery = 0;
   const total = Math.max(0, subtotal + delivery);
   const totalSavings = savings;
   const canPay = !!address && cart.length > 0;

@@ -6,17 +6,18 @@ import {
   HiXMark,
   HiOutlineEnvelope,
   HiOutlineLockClosed,
+  HiOutlineUser,
+  HiOutlinePhone,
   HiOutlineEye,
   HiOutlineEyeSlash,
   HiCheck,
   HiArrowRightCircle,
 } from "react-icons/hi2";
-import { login } from "../lib/auth";
+import { signup } from "../lib/auth";
 import styles from "./LoginModal.module.css";
 
-export default function LoginModal({ open, onClose, onSwitchToSignup }) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+export default function SignupModal({ open, onClose, onSwitchToLogin }) {
+  const [form, setForm] = useState({ name: "", email: "", phone: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -25,12 +26,10 @@ export default function LoginModal({ open, onClose, onSwitchToSignup }) {
 
   useEffect(() => setMounted(true), []);
 
-  // reset on close
   useEffect(() => {
     if (!open) {
       const t = setTimeout(() => {
-        setEmail("");
-        setPassword("");
+        setForm({ name: "", email: "", phone: "", password: "" });
         setShowPassword(false);
         setLoading(false);
         setSuccess(false);
@@ -40,7 +39,6 @@ export default function LoginModal({ open, onClose, onSwitchToSignup }) {
     }
   }, [open]);
 
-  // esc + lock scroll
   useEffect(() => {
     if (!open) return;
     const onKey = (e) => e.key === "Escape" && onClose();
@@ -52,72 +50,91 @@ export default function LoginModal({ open, onClose, onSwitchToSignup }) {
     };
   }, [open, onClose]);
 
+  const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
   const submit = async (e) => {
     e.preventDefault();
     setError("");
-    const trimmed = email.trim().toLowerCase();
-    if (!/^\S+@\S+\.\S+$/.test(trimmed)) {
-      setError("Enter a valid email address.");
-      return;
-    }
-    if (!password) {
-      setError("Enter your password.");
-      return;
-    }
+    const email = form.email.trim().toLowerCase();
+    const name = form.name.trim();
+    const phone = form.phone.replace(/\D/g, "").slice(-10);
+
+    if (!name) return setError("Enter your name.");
+    if (!/^\S+@\S+\.\S+$/.test(email)) return setError("Enter a valid email address.");
+    if (phone && phone.length !== 10) return setError("Phone must be a 10-digit number.");
+    if (form.password.length < 8) return setError("Password must be at least 8 characters.");
+
     setLoading(true);
     try {
-      await login(trimmed, password);
+      await signup({ name, email, phone, password: form.password });
       setSuccess(true);
-      setTimeout(() => onClose(), 1200);
+      // Hand off to the login modal so the user signs in with the credentials
+      // they just created (backend response's JWT is intentionally discarded
+      // so a real login happens).
+      setTimeout(() => {
+        onClose();
+        setTimeout(() => onSwitchToLogin?.(), 260);
+      }, 1200);
     } catch (err) {
-      setError(err.message || "Couldn't sign you in. Please try again.");
+      setError(err.message || "Couldn't create your account. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const goToSignup = () => {
+  const goToLogin = () => {
     onClose();
-    // Give the close animation a beat before opening the sibling modal so
-    // the transition doesn't stack visually.
-    setTimeout(() => onSwitchToSignup?.(), 260);
+    setTimeout(() => onSwitchToLogin?.(), 260);
   };
 
   if (!open || !mounted) return null;
 
   return createPortal(
-    <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true" aria-label="Log in">
+    <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true" aria-label="Create an account">
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <button className={styles.close} onClick={onClose} aria-label="Close">
           <HiXMark />
         </button>
 
-        {/* header */}
         <div className={styles.header}>
           <div className={styles.logo}>
             <span className={styles.logoMark}>VRS</span>
           </div>
           <div>
             <b>VRS Water Purifiers</b>
-            <span>Welcome back</span>
+            <span>Create your account</span>
           </div>
         </div>
 
-        {/* body */}
         {success ? (
           <div className={styles.success}>
             <div className={styles.successBadge}>
               <HiCheck />
             </div>
-            <b>Signed in</b>
-            <p>Welcome back to VRS Water Purifiers.</p>
+            <b>Account created</b>
+            <p>Redirecting you to log in…</p>
           </div>
         ) : (
           <form onSubmit={submit} className={styles.body}>
             <div>
-              <h3>Log in to your account</h3>
-              <p>Enter your email and password to continue.</p>
+              <h3>Join VRS Water Purifiers</h3>
+              <p>It takes less than a minute.</p>
             </div>
+
+            <label className={styles.field}>
+              <span>Full name</span>
+              <div className={styles.inputWrap}>
+                <HiOutlineUser className={styles.inputIcon} />
+                <input
+                  type="text"
+                  autoComplete="name"
+                  autoFocus
+                  value={form.name}
+                  onChange={(e) => set("name", e.target.value)}
+                  placeholder="Your name"
+                />
+              </div>
+            </label>
 
             <label className={styles.field}>
               <span>Email address</span>
@@ -126,24 +143,39 @@ export default function LoginModal({ open, onClose, onSwitchToSignup }) {
                 <input
                   type="email"
                   autoComplete="email"
-                  autoFocus
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  value={form.email}
+                  onChange={(e) => set("email", e.target.value)}
                   placeholder="you@example.com"
                 />
               </div>
             </label>
 
             <label className={styles.field}>
-              <span>Password</span>
+              <span>Phone <em style={{ color: "var(--muted, #6b7c88)", fontStyle: "normal", fontWeight: 400 }}>(optional)</em></span>
+              <div className={styles.inputWrap}>
+                <HiOutlinePhone className={styles.inputIcon} />
+                <input
+                  type="tel"
+                  autoComplete="tel"
+                  inputMode="numeric"
+                  maxLength={10}
+                  value={form.phone}
+                  onChange={(e) => set("phone", e.target.value.replace(/\D/g, ""))}
+                  placeholder="10-digit mobile"
+                />
+              </div>
+            </label>
+
+            <label className={styles.field}>
+              <span>Password <em style={{ color: "var(--muted, #6b7c88)", fontStyle: "normal", fontWeight: 400 }}>(at least 8 characters)</em></span>
               <div className={styles.inputWrap}>
                 <HiOutlineLockClosed className={styles.inputIcon} />
                 <input
                   type={showPassword ? "text" : "password"}
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Your password"
+                  autoComplete="new-password"
+                  value={form.password}
+                  onChange={(e) => set("password", e.target.value)}
+                  placeholder="Choose a strong password"
                 />
                 <button
                   type="button"
@@ -159,13 +191,13 @@ export default function LoginModal({ open, onClose, onSwitchToSignup }) {
             {error && <span className={styles.error}>{error}</span>}
 
             <button type="submit" className={styles.submit} disabled={loading}>
-              {loading ? "Signing in…" : (<><HiArrowRightCircle /> Log in</>)}
+              {loading ? "Creating account…" : (<><HiArrowRightCircle /> Create account</>)}
             </button>
 
             <div className={styles.switchRow}>
-              <span>New to VRS?</span>
-              <button type="button" className={styles.switchBtn} onClick={goToSignup}>
-                Create an account
+              <span>Already have an account?</span>
+              <button type="button" className={styles.switchBtn} onClick={goToLogin}>
+                Log in
               </button>
             </div>
           </form>

@@ -47,10 +47,10 @@ async function pullFromServer() {
 /* ---------- mutations ---------- */
 
 /**
- * Places an order. When logged in, POSTs to the backend — the server rebuilds
- * the order from the authoritative server-side cart and returns the persisted
- * document. Otherwise falls back to a local-only mock order so guests can
- * still complete the checkout flow.
+ * Places an order. When logged in, POSTs to the backend — the server creates
+ * a pending order AND a matching Razorpay order in one call, returning both.
+ * Guests can't pay online, so they get a local-only mock order and are
+ * expected to log in before actually completing checkout.
  */
 export async function placeOrder({
   shippingAddress,
@@ -59,18 +59,18 @@ export async function placeOrder({
   delivery = 0,
   total = 0,
   savings = 0,
-  paymentMethod = "COD",
+  paymentMethod = "RAZORPAY",
   promoCode = "",
   discount = 0,
 }) {
   if (getToken()) {
-    const order = await api("/api/orders", {
+    const res = await api("/api/orders", {
       method: "POST",
       body: JSON.stringify({ shippingAddress, paymentMethod, promoCode, discount }),
     });
-    // Refresh local cache so useOrders() picks it up immediately.
+    // Refresh local cache so useOrders() picks up the new pending order.
     await pullFromServer();
-    return order;
+    return res; // { order, razorpay: { key, orderId, amount, currency } }
   }
 
   const order = {
@@ -106,7 +106,32 @@ export async function placeOrder({
   };
 
   writeLocal([order, ...readLocal()]);
-  return order;
+  return { order, razorpay: null };
+}
+
+/**
+ * Verifies a completed Razorpay payment. Backend re-checks the HMAC signature
+ * against the server-side secret and marks the order as paid.
+ */
+export async function verifyRazorpayPayment(orderId, payload) {
+  const res = await api(`/api/orders/${orderId}/verify-payment`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+  await pullFromServer();
+  return res;
+}
+
+/**
+ * Reports a Razorpay failure or dismissed modal so the backend can flip the
+ * order's paymentStatus to "failed". Best-effort — the frontend still
+ * navigates to /payment-failed regardless of whether this succeeds.
+ */
+export async function markRazorpayFailed(orderId) {
+  try {
+    await api(`/api/orders/${orderId}/payment-failed`, { method: "POST" });
+    await pullFromServer();
+  } catch { /* silent */ }
 }
 
 export async function fetchOrders() {

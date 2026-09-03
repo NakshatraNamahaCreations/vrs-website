@@ -74,7 +74,7 @@ export default function Footer() {
             ))}
           </div>
 
-          <div className={styles.social}>
+          {/* <div className={styles.social}>
             {["facebook", "instagram", "youtube", "linkedin"].map((s) => (
               <a
                 key={s}
@@ -85,7 +85,7 @@ export default function Footer() {
                 <SocialIcon name={s} />
               </a>
             ))}
-          </div>
+          </div> */}
         </div>
 
         <div className={styles.col}>

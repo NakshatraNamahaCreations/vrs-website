@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import LoginModal from "./LoginModal";
+import SignupModal from "./SignupModal";
 import SearchOverlay from "./SearchOverlay";
 import { useSession } from "../lib/auth";
 import { useCart } from "../lib/cart";
@@ -27,6 +28,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [signupOpen, setSignupOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -45,11 +47,17 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Any page can request the login modal by dispatching `vrs-open-login`.
+  // Any page can request the login modal by dispatching `vrs-open-login`,
+  // or the signup modal via `vrs-open-signup`.
   useEffect(() => {
-    const onOpen = () => setLoginOpen(true);
-    window.addEventListener("vrs-open-login", onOpen);
-    return () => window.removeEventListener("vrs-open-login", onOpen);
+    const onLogin = () => { setSignupOpen(false); setLoginOpen(true); };
+    const onSignup = () => { setLoginOpen(false); setSignupOpen(true); };
+    window.addEventListener("vrs-open-login", onLogin);
+    window.addEventListener("vrs-open-signup", onSignup);
+    return () => {
+      window.removeEventListener("vrs-open-login", onLogin);
+      window.removeEventListener("vrs-open-signup", onSignup);
+    };
   }, []);
 
   return (
@@ -117,7 +125,16 @@ export default function Navbar() {
           </button>
         </div>
       </div>
-      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+      <LoginModal
+        open={loginOpen}
+        onClose={() => setLoginOpen(false)}
+        onSwitchToSignup={() => setSignupOpen(true)}
+      />
+      <SignupModal
+        open={signupOpen}
+        onClose={() => setSignupOpen(false)}
+        onSwitchToLogin={() => setLoginOpen(true)}
+      />
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   );

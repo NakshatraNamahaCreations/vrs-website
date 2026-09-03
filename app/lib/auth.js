@@ -10,8 +10,38 @@ const KEY = "vrs_session";
 /* ---------- backend calls ---------- */
 
 /**
+ * Sign in an existing user with email + password. Stores JWT + session and
+ * runs the guest cart/address merge.
+ */
+export async function login(email, password) {
+  const res = await api("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+  setToken(res.token);
+  writeSession(res.user);
+  try { await mergeCartOnLogin(); } catch { /* silent — cart merge is best-effort */ }
+  try { await mergeAddressOnLogin(); } catch { /* silent — address merge is best-effort */ }
+  return res.user;
+}
+
+/**
+ * Create a new account. Does NOT auto-authenticate — the UI redirects the
+ * user to the login modal after signup, so the JWT returned here is dropped.
+ * Guest cart/address merge happens on the subsequent login instead.
+ */
+export async function signup({ email, password, name = "", phone = "" }) {
+  const res = await api("/api/auth/signup", {
+    method: "POST",
+    body: JSON.stringify({ email, password, name, phone }),
+  });
+  return res.user;
+}
+
+/**
  * Request a fresh OTP for the given phone.
  * Returns { ok, expiresAt, devOtp? } from the backend.
+ * (Legacy OTP flow — kept in case any client still calls it.)
  */
 export async function requestOtp(phone) {
   return api("/api/auth/send-otp", {
