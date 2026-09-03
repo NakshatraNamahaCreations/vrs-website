@@ -96,7 +96,9 @@
 }
 @media (max-width: 900px) {
   .gallery {
-    position: static;
+    /* Drop the sticky/max-height layout on tablets but keep the box as a
+       positioning context so the absolute rail still anchors to it. */
+    position: relative;
     max-height: none;
     grid-template-columns: 72px minmax(0, 1fr);
   }
@@ -119,7 +121,35 @@
   justify-content: center;
   padding: 24px;
   grid-column: 2;
+  /* Element is a <button> now so it triggers the lightbox — strip the
+     default button chrome. */
+  font: inherit;
+  color: inherit;
+  cursor: zoom-in;
+  width: 100%;
 }
+.mainImgWrap:focus-visible {
+  outline: 2px solid var(--brand-500);
+  outline-offset: 3px;
+}
+.zoomHint {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(4, 27, 48, 0.75);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+.mainImgWrap:hover .zoomHint,
+.mainImgWrap:focus-visible .zoomHint { opacity: 1; transform: translateY(0); }
 @media (max-width: 520px) {
   .mainImgWrap { grid-column: 1; }
 }
@@ -160,26 +190,74 @@
   z-index: 2;
 }
 
-/* Thumbnails — vertical rail on the left */
+/* Thumbnails — vertical rail on the left.
+   Positioned absolutely inside .gallery so its height is pinned to the main
+   image (top: 0 to bottom: 0). Overflowing thumbnails scroll internally. The
+   88px column in the parent grid is left empty as visual gutter — the rail
+   floats within it via left: 0; width: 88px. */
 .thumbRail {
-  grid-column: 1;
-  grid-row: 1;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 88px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 2px 0;
-  max-height: 100%;
+  padding: 4px 2px;
   overflow-y: auto;
-  scrollbar-width: thin;
+  overscroll-behavior: contain;
+
+  /* Hide native scrollbar cross-browser. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  /* Fade the top and bottom edges — subtle affordance for scrollability. */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+          mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent 100%
+  );
+}
+.thumbRail::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+@media (max-width: 900px) {
+  .thumbRail { width: 72px; }
 }
 @media (max-width: 520px) {
   .thumbRail {
+    /* Return to normal grid flow as a horizontal rail on mobile. */
+    position: static;
+    width: auto;
     grid-column: 1;
     grid-row: 2;
     flex-direction: row;
     overflow-x: auto;
     overflow-y: hidden;
-    max-height: none;
+    /* Swap the fade axis for the horizontal mobile rail. */
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 16px,
+      #000 calc(100% - 16px),
+      transparent 100%
+    );
+            mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 16px,
+      #000 calc(100% - 16px),
+      transparent 100%
+    );
   }
 }
 .thumb {
@@ -595,4 +673,107 @@
   color: var(--ink-soft);
   font-size: 0.85rem;
   text-decoration: line-through;
+}
+
+/* ============ LIGHTBOX ============ */
+.lightboxOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(4, 27, 48, 0.88);
+  backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  padding: 40px;
+  animation: lightboxFadeIn 0.2s ease-out;
+}
+@keyframes lightboxFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.lightboxStage {
+  max-width: min(1100px, 90vw);
+  max-height: 88vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+.lightboxStage img {
+  max-width: 100%;
+  max-height: 88vh;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.6);
+  animation: lightboxImgIn 0.25s ease-out;
+}
+@keyframes lightboxImgIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.lightboxClose,
+.lightboxNav {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 1.5rem;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+  z-index: 2;
+}
+.lightboxClose:hover,
+.lightboxNav:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: scale(1.06);
+}
+.lightboxClose:focus-visible,
+.lightboxNav:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
+
+.lightboxNav {
+  top: 50%;
+  right: auto;
+  transform: translateY(-50%);
+}
+.lightboxNav:hover { transform: translateY(-50%) scale(1.06); }
+.lightboxNavPrev { left: 24px; }
+.lightboxNavNext { right: 24px; }
+
+.lightboxCounter {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  z-index: 2;
+}
+
+@media (max-width: 640px) {
+  .lightboxOverlay { padding: 12px; }
+  .lightboxClose, .lightboxNav {
+    width: 40px;
+    height: 40px;
+    font-size: 1.3rem;
+  }
+  .lightboxNavPrev { left: 10px; }
+  .lightboxNavNext { right: 10px; }
+  .lightboxCounter { bottom: 14px; }
 }

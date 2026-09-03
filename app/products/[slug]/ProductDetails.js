@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -14,6 +15,8 @@ import {
   HiMinus,
   HiOutlineShoppingBag,
   HiChevronRight,
+  HiXMark,
+  HiChevronLeft,
 } from "react-icons/hi2";
 import { api } from "../../lib/api";
 import { addToCart, resolveImg } from "../../lib/cart";
@@ -55,6 +58,7 @@ export default function ProductDetails() {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [source, setSource] = useState(null);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
 
   useEffect(() => {
     setActiveImg(0);
@@ -155,14 +159,20 @@ export default function ProductDetails() {
         <div className={`container ${styles.grid}`}>
           {/* LEFT — gallery */}
           <div className={styles.gallery}>
-            <div className={styles.mainImgWrap}>
+            <button
+              type="button"
+              className={styles.mainImgWrap}
+              onClick={() => setLightboxOpen(true)}
+              aria-label={`Open ${product.name} in full-screen viewer`}
+            >
               {product.tag && <span className={styles.badge}>{product.tag}</span>}
               {discount > 0 && <span className={styles.discountPill}>-{discount}%</span>}
               <img
                 src={resolveImg(product.images[activeImg] || product.image)}
                 alt={product.name}
               />
-            </div>
+              <span className={styles.zoomHint} aria-hidden>Click to zoom</span>
+            </button>
 
             {product.images.length > 0 && (
               <div className={styles.thumbRail}>
@@ -335,6 +345,105 @@ export default function ProductDetails() {
           </div>
         </section>
       )}
+
+      {lightboxOpen && (
+        <Lightbox
+          images={product.images}
+          startIndex={activeImg}
+          alt={product.name}
+          onClose={() => setLightboxOpen(false)}
+          onChangeIndex={(i) => setActiveImg(i)}
+        />
+      )}
     </>
+  );
+}
+
+function Lightbox({ images, startIndex, alt, onClose, onChangeIndex }) {
+  const [index, setIndex] = useState(startIndex);
+  const [mounted, setMounted] = useState(false);
+  const count = images.length;
+
+  useEffect(() => setMounted(true), []);
+
+  const goTo = useMemo(
+    () => (next) => {
+      const wrapped = (next + count) % count;
+      setIndex(wrapped);
+      onChangeIndex?.(wrapped);
+    },
+    [count, onChangeIndex]
+  );
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+      else if (e.key === "ArrowRight" && count > 1) goTo(index + 1);
+      else if (e.key === "ArrowLeft" && count > 1) goTo(index - 1);
+    };
+    document.addEventListener("keydown", onKey);
+    // Lock body scroll while the lightbox is open so the page underneath
+    // doesn't scroll when the user swipes or wheels inside the overlay.
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose, goTo, index, count]);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <div
+      className={styles.lightboxOverlay}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${alt} — image ${index + 1} of ${count}`}
+    >
+      <button
+        type="button"
+        className={styles.lightboxClose}
+        onClick={onClose}
+        aria-label="Close"
+      >
+        <HiXMark />
+      </button>
+
+      {count > 1 && (
+        <button
+          type="button"
+          className={`${styles.lightboxNav} ${styles.lightboxNavPrev}`}
+          onClick={(e) => { e.stopPropagation(); goTo(index - 1); }}
+          aria-label="Previous image"
+        >
+          <HiChevronLeft />
+        </button>
+      )}
+
+      <div className={styles.lightboxStage} onClick={(e) => e.stopPropagation()}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={resolveImg(images[index])} alt={`${alt} — ${index + 1}`} />
+      </div>
+
+      {count > 1 && (
+        <button
+          type="button"
+          className={`${styles.lightboxNav} ${styles.lightboxNavNext}`}
+          onClick={(e) => { e.stopPropagation(); goTo(index + 1); }}
+          aria-label="Next image"
+        >
+          <HiChevronRight />
+        </button>
+      )}
+
+      {count > 1 && (
+        <div className={styles.lightboxCounter} onClick={(e) => e.stopPropagation()}>
+          {index + 1} / {count}
+        </div>
+      )}
+    </div>,
+    document.body
   );
 }
