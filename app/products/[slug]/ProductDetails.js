@@ -109,7 +109,9 @@ export default function ProductDetails() {
   const onAdd = async () => {
     if (!product) return;
     setAdded(true);
-    await addToCart({ ...product, qty });
+    // qty must be the second arg — addToCart ignores any qty stuffed onto
+    // the product object itself.
+    await addToCart(product, qty);
     setTimeout(() => setAdded(false), 1400);
   };
 

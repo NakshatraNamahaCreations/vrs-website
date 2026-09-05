@@ -219,10 +219,12 @@
   outline: none;
   transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.15s ease;
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 .otpBox::-webkit-inner-spin-button,
 .otpBox::-webkit-outer-spin-button {
   -webkit-appearance: none;
+          appearance: none;
   margin: 0;
 }
 .otpBox:focus {
@@ -435,3 +437,13 @@
   text-underline-offset: 3px;
 }
 .switchBtn:hover { color: var(--brand-900); }
+
+.fieldHint {
+  display: block;
+  margin-top: 4px;
+  color: #d48a3a;
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}

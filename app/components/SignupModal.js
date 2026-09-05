@@ -52,6 +52,29 @@ export default function SignupModal({ open, onClose, onSwitchToLogin }) {
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
+  // Live filters — reject disallowed characters as the user types so an
+  // invalid character never lands in the field in the first place.
+  const onNameChange = (raw) => {
+    // Letters, spaces, hyphens and apostrophes (for names like O'Brien /
+    // Mary-Jane). No digits, no other punctuation.
+    set("name", raw.replace(/[^A-Za-z\s'-]/g, ""));
+  };
+  const onPhoneChange = (raw) => {
+    set("phone", raw.replace(/\D/g, "").slice(0, 10));
+  };
+  const onEmailChange = (raw) => {
+    // Emails have no whitespace; strip on paste.
+    set("email", raw.replace(/\s+/g, ""));
+  };
+
+  // Field-level status derived from the current form values — used for the
+  // inline hint under each input and the submit button's disabled state.
+  const nameValid = form.name.trim().length >= 2;
+  const emailValid = /^\S+@\S+\.\S+$/.test(form.email.trim());
+  const phoneValid = form.phone === "" || form.phone.length === 10;
+  const passwordValid = form.password.length >= 8;
+  const formValid = nameValid && emailValid && phoneValid && passwordValid;
+
   const submit = async (e) => {
     e.preventDefault();
     setError("");
@@ -130,10 +153,13 @@ export default function SignupModal({ open, onClose, onSwitchToLogin }) {
                   autoComplete="name"
                   autoFocus
                   value={form.name}
-                  onChange={(e) => set("name", e.target.value)}
+                  onChange={(e) => onNameChange(e.target.value)}
                   placeholder="Your name"
                 />
               </div>
+              {form.name && !nameValid && (
+                <em className={styles.fieldHint}>Enter at least 2 letters.</em>
+              )}
             </label>
 
             <label className={styles.field}>
@@ -144,10 +170,13 @@ export default function SignupModal({ open, onClose, onSwitchToLogin }) {
                   type="email"
                   autoComplete="email"
                   value={form.email}
-                  onChange={(e) => set("email", e.target.value)}
+                  onChange={(e) => onEmailChange(e.target.value)}
                   placeholder="you@example.com"
                 />
               </div>
+              {form.email && !emailValid && (
+                <em className={styles.fieldHint}>Enter a valid email like name@example.com.</em>
+              )}
             </label>
 
             <label className={styles.field}>
@@ -160,10 +189,13 @@ export default function SignupModal({ open, onClose, onSwitchToLogin }) {
                   inputMode="numeric"
                   maxLength={10}
                   value={form.phone}
-                  onChange={(e) => set("phone", e.target.value.replace(/\D/g, ""))}
+                  onChange={(e) => onPhoneChange(e.target.value)}
                   placeholder="10-digit mobile"
                 />
               </div>
+              {form.phone && form.phone.length < 10 && (
+                <em className={styles.fieldHint}>{form.phone.length} / 10 digits</em>
+              )}
             </label>
 
             <label className={styles.field}>
@@ -186,11 +218,19 @@ export default function SignupModal({ open, onClose, onSwitchToLogin }) {
                   {showPassword ? <HiOutlineEyeSlash /> : <HiOutlineEye />}
                 </button>
               </div>
+              {form.password && !passwordValid && (
+                <em className={styles.fieldHint}>{form.password.length} / 8 characters — add {8 - form.password.length} more.</em>
+              )}
             </label>
 
             {error && <span className={styles.error}>{error}</span>}
 
-            <button type="submit" className={styles.submit} disabled={loading}>
+            <button
+              type="submit"
+              className={styles.submit}
+              disabled={loading || !formValid}
+              title={!formValid ? "Fill in every field correctly to continue" : undefined}
+            >
               {loading ? "Creating account…" : (<><HiArrowRightCircle /> Create account</>)}
             </button>
 
