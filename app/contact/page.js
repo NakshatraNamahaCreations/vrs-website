@@ -34,7 +34,7 @@ const cards = [
     icon: "location",
     label: "Visit us",
     primary: "Uttarahalli Main Rd, Poorna Prajna Layout, Bengaluru, Karnataka 560061",
-    href: "https://maps.google.com/?q=71+vaddarapalya%2C+11th+main+7th+cross%2C+Uttarahalli+Main+Rd%2C+Poorna+Prajna+Layout%2C+Bengaluru%2C+Karnataka+560061",
+    href: "https://maps.app.goo.gl/z53nmHTB7RxurtqBA",
     sub: "Karnataka, India",
     external: true,
   },
@@ -252,6 +252,30 @@ export default function ContactPage() {
               </div>
             </div>
           </aside>
+        </div>
+      </section>
+
+      {/* ============ MAP ============ */}
+      <section className={styles.mapSection}>
+        <div className="container">
+          <div className={styles.mapCard}>
+            <iframe
+              title="VRS Water Purifiers on Google Maps"
+              src="https://www.google.com/maps?q=Uttarahalli+Main+Rd,+Poorna+Prajna+Layout,+Bengaluru,+Karnataka+560061&output=embed"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+            <a
+              href="https://maps.app.goo.gl/z53nmHTB7RxurtqBA"
+              target="_blank"
+              rel="noreferrer"
+              className={styles.mapCta}
+            >
+              <HiOutlineMapPin /> Open in Google Maps
+              <HiArrowRight />
+            </a>
+          </div>
         </div>
       </section>
 
