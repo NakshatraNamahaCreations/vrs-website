@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -59,6 +59,30 @@ export default function ProductDetails() {
   const [added, setAdded] = useState(false);
   const [source, setSource] = useState(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const thumbRailRef = useRef(null);
+  const thumbRefs = useRef([]);
+
+  // Keep the active thumbnail visible in the rail whenever activeImg changes.
+  // We manually scroll only the rail (not the page) so clicking a thumb
+  // doesn't send the whole product page bouncing. Handles both the mobile
+  // horizontal rail and the desktop vertical rail.
+  useEffect(() => {
+    const rail = thumbRailRef.current;
+    const el = thumbRefs.current[activeImg];
+    if (!rail || !el) return;
+    const isHorizontal = rail.scrollWidth > rail.clientWidth;
+    if (isHorizontal) {
+      // Center the active thumb horizontally within the rail's visible area.
+      const target =
+        el.offsetLeft - rail.clientWidth / 2 + el.clientWidth / 2;
+      rail.scrollTo({ left: target, behavior: "smooth" });
+    } else {
+      // Vertical desktop rail — same idea in the block direction.
+      const target =
+        el.offsetTop - rail.clientHeight / 2 + el.clientHeight / 2;
+      rail.scrollTo({ top: target, behavior: "smooth" });
+    }
+  }, [activeImg]);
 
   useEffect(() => {
     setActiveImg(0);
@@ -177,12 +201,21 @@ export default function ProductDetails() {
             </button>
 
             {product.images.length > 0 && (
-              <div className={styles.thumbRail}>
+              <div className={styles.thumbRail} ref={thumbRailRef}>
                 {product.images.map((img, i) => (
                   <button
                     type="button"
                     key={`${img}-${i}`}
-                    onClick={() => setActiveImg(i)}
+                    ref={(el) => (thumbRefs.current[i] = el)}
+                    // Preventing default AND calling focus with preventScroll
+                    // stops the browser from auto-scrolling the page to bring
+                    // the focused (or partially-visible) thumb into view,
+                    // which was pushing the main image up out of the viewport.
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={(e) => {
+                      e.currentTarget.focus({ preventScroll: true });
+                      setActiveImg(i);
+                    }}
                     className={`${styles.thumb} ${i === activeImg ? styles.thumbActive : ""}`}
                     aria-label={`View image ${i + 1}`}
                   >

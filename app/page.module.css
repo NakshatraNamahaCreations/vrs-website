@@ -95,6 +95,63 @@
   border-color: rgba(255, 255, 255, 0.5);
 }
 
+/* ---------- HERO — mobile (≤ 640px) ---------- */
+@media (max-width: 640px) {
+  .hero {
+    /* Desktop clamp was 120px top / 160px bottom — 280px of padding on a
+       637px phone viewport, ~44% of the screen wasted before the h1 shows.
+       Trim aggressively and let the header offset live at 92px (nav ~72px
+       + breathing room). Also shift the background focal point down since
+       the banner artwork's subject sits below center — with cover on a
+       narrow portrait viewport, `center` was cropping the product out. */
+    padding: 92px 0 56px !important;
+    background-position: center 60%;
+  }
+  /* The soft glow + grid overlays add cost without much visual payoff at
+     phone size — kill them to reduce paint and let the artwork breathe. */
+  .heroBg { display: none; }
+  .heroGrid {
+    background-size: 40px 40px;
+    opacity: 0.22;
+  }
+
+  .heroInner { gap: 14px; }
+  .heroCopy h1 {
+    /* Global clamp gives 2.4rem (~38px) at this width — a touch large for a
+       375px viewport once combined with the padding above and the 2-line
+       break. Tighten leading too. */
+    font-size: 2rem;
+    line-height: 1.1;
+    margin: 14px 0 14px;
+  }
+  .badge {
+    font-size: 0.72rem;
+    padding: 6px 12px;
+  }
+  .lede {
+    /* 1.15rem was fine visually but the copy is long — a slightly smaller
+       size + tighter leading fits it in ~4 lines instead of 6. */
+    font-size: 0.95rem;
+    line-height: 1.55;
+  }
+
+  .heroCtas {
+    /* Stack the CTAs full-width — flex-wrap put them side-by-side which
+       squeezed the labels ("Talk to an expert" wrapping mid-word). Full
+       width buttons also give big tap targets. */
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    margin-top: 22px;
+    width: 100%;
+  }
+  .heroCtas :global(.btn) {
+    width: 100%;
+    justify-content: center;
+    padding: 13px 20px;
+  }
+}
+
 /* ========== STATS STRIP (below hero) ========== */
 .statsSection {
   padding: 0;

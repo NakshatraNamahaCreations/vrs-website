@@ -122,14 +122,14 @@ export default function Footer() {
             <span className={styles.contactIcon}><ContactIcon name="mail" /></span>
             <div>
               <span>Drop a mail</span>
-              <a href="mailto:hello@vrswaterpurifiers.in">hello@vrswaterpurifiers.in</a>
+              <a href="mailto:abhishek900815@gmail.com">abhishek900815@gmail.com</a>
             </div>
           </div>
           <div className={styles.contactCard}>
             <span className={styles.contactIcon}><ContactIcon name="pin" /></span>
             <div>
               <span>Visit us</span>
-              <p>No. 24, Water Street,<br />Bangalore, Karnataka 560068</p>
+              <p> 71 vaddarapalya<br/> 11th main 7th cross,<br/> Uttarahalli Main Rd, <br/>Poorna Prajna Layout,<br/> Bengaluru, Karnataka 560061</p>
             </div>
           </div>
         </div>

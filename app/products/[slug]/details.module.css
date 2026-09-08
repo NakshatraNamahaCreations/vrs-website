@@ -80,7 +80,14 @@
   align-items: start;
 }
 @media (max-width: 900px) {
-  .grid { grid-template-columns: 1fr; }
+  /* `1fr` shorthand = `minmax(auto, 1fr)` and `auto` resolves to min-content.
+     If ANY grid child has intrinsic width bigger than the viewport (a wide
+     infographic image, an unbroken product h1, a long word), the column
+     grows and the whole page gets horizontal scroll — the "main image
+     overflows past the right edge" bug we saw. `minmax(0, 1fr)` caps the
+     min at 0 so children have to fit or get clipped by their own overflow
+     rule. */
+  .grid { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ============ GALLERY ============ */
@@ -298,7 +305,14 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  /* Grid children default to min-width: auto (= min-content). A product h1
+     like "Aquaguard Aspire Designo 2X UTC UV UF Water Purifier | 2 Year
+     Filter Life With Mega Sediment Filter" would force this column wider
+     than the viewport, so pin min-width and let long words wrap anywhere. */
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
+.gallery { min-width: 0; }
 .infoHead {
   display: flex;
   flex-direction: column;
@@ -776,4 +790,254 @@
   .lightboxNavPrev { left: 10px; }
   .lightboxNavNext { right: 10px; }
   .lightboxCounter { bottom: 14px; }
+}
+
+/* =================================================================
+   MOBILE OPTIMISATIONS  (≤ 640px)
+   All below is override-only — keeps desktop styles untouched.
+   ================================================================= */
+@media (max-width: 640px) {
+  /* Breadcrumb — long product names ate too much vertical space on phones,
+     so hide the terminal "current product" crumb and lean on the h1. */
+  .crumbCurrent { display: none; }
+  .breadcrumb { font-size: 0.78rem; }
+
+  /* Info stack — tighten section spacing so the fold shows more content.
+     Give the info section a top margin as an extra safety buffer so it
+     never abuts / visually overlaps the gallery's thumb rail. */
+  .info {
+    gap: 18px;
+    margin-top: 8px;
+  }
+  .infoHead {
+    /* Prevent the chip and h1 from being squeezed against the thumb rail
+       above — this is the section that looked "overlapped" in earlier
+       screenshots. */
+    padding-top: 4px;
+  }
+  .section { padding-top: 16px; }
+  .section h3 { font-size: 1rem; margin-bottom: 8px; }
+  .section p { font-size: 0.9rem; line-height: 1.6; }
+  .features li { font-size: 0.9rem; }
+
+  /* Mobile gallery — burn the desktop grid layout down entirely and rebuild
+     as a simple flex column so nothing about `position: absolute` on the
+     thumb rail can carry over. Also enforce a hard gap between the gallery
+     and whatever comes next (.info) so the two sections can never merge
+     visually. */
+  .gallery {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    position: static !important;
+    max-height: none !important;
+    gap: 10px !important;
+    margin-bottom: 20px !important;
+    top: auto !important;
+  }
+  .mainImgWrap {
+    grid-column: auto !important;
+    padding: 12px;
+    border-radius: 16px;
+    /* Force the button to lay out as its own block so nothing floats over it. */
+    display: flex !important;
+    width: 100% !important;
+    /* Keep the square 1:1 (inherited from desktop) but cap the height so it
+       doesn't eat the whole fold on tall phones. On 375×637 (iPhone 12),
+       the square would be 327px tall — a little tight for the fold but
+       fine; the cap only bites on very narrow / very tall viewports. */
+    max-height: 55vh;
+  }
+  /* Touch devices can't hover, so the "click to zoom" hint would never
+     appear. Always show it, slightly smaller. */
+  .zoomHint {
+    opacity: 1;
+    transform: none;
+    padding: 4px 10px;
+    font-size: 0.66rem;
+    bottom: 10px;
+    right: 10px;
+  }
+  /* No hover on touch — kill the scale so the image doesn't feel jittery
+     when the user just taps. */
+  .mainImgWrap:hover img { transform: none; }
+
+  /* Price card — remove the outer border/shadow chrome and let the price
+     breathe closer to the container edge. */
+  .priceCard {
+    padding: 18px;
+    border-radius: 16px;
+  }
+  .priceRow { gap: 10px; }
+  .original { font-size: 0.95rem; }
+  .off { font-size: 0.72rem; padding: 3px 8px; }
+  .savings { font-size: 0.82rem; }
+
+  /* Actions — put the qty selector and the CTA in a two-row stack so the
+     Add-to-bag button spans the full width and gives a huge tap target. */
+  .actionsRow {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .qty {
+    align-self: flex-start;
+    /* Bigger tap targets for +/- than desktop's 36px. */
+  }
+  .qty button {
+    width: 40px;
+    height: 40px;
+  }
+  .qty span { min-width: 40px; font-size: 1.05rem; }
+  .addBtn {
+    width: 100%;
+    min-width: 0;
+    padding: 14px 20px;
+    font-size: 0.98rem;
+  }
+
+  /* Thumbnail rail — mirrors desktop functionality (hidden scrollbar, edge
+     fade-mask, snap, scrollIntoView on active change), rotated to a
+     horizontal layout below the main image.
+     Tile size is calc'd so exactly 4.5 tiles are visible in the viewport:
+     4 full + a half-peek 5th on the right edge, so users see there's more
+     to scroll. Auto-scroll on click keeps the rail synced to the active
+     image. */
+  .thumbRail {
+    /* Kill every scrap of the desktop position:absolute layout. */
+    position: static !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    /* min-width: 0 is essential — without it, flex/grid children refuse to
+       overflow, the browser squeezes the thumbs to 100% width instead, and
+       scroll never triggers. */
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 4px 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    /* Reclaim horizontal touch panning in case a parent set touch-action:pan-y. */
+    touch-action: pan-x !important;
+    /* Softer snap so it doesn't fight against a swipe that doesn't line up
+       exactly with a tile boundary. */
+    scroll-snap-type: x proximity !important;
+    scroll-behavior: smooth !important;
+    -webkit-overflow-scrolling: touch;
+    /* Hidden scrollbar — matches desktop behaviour. */
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    /* NO mask-image on mobile — it creates a compositor layer that some
+       mobile browsers (older iOS Safari especially) glitch on for touch
+       hit-testing, and manual swipe scroll silently stops working. Softer
+       visual affordance via the half-peek 5th tile is enough. */
+    -webkit-mask-image: none !important;
+            mask-image: none !important;
+  }
+  .thumbRail::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+  }
+  /* Thumbnail tiles sized so 4.5 fit in the viewport:
+     - 4 gaps between visible tiles × 8px = 32px total gap
+     - each tile width = (100vw - 32px) / 4.5
+     Adjust the divisor to peek more/less of tile 5. */
+  .thumb {
+    /* Fixed 60px tile — small enough that 6+ images always overflow the
+       343px container inside the parent padding, so scroll is enabled AND
+       the 6th tile shows an obvious ~30px peek on the right edge.
+       Using min()/calc() inside `flex` had a subtle bug on some browsers
+       where the shrink got applied to make all tiles fit, defeating the
+       scroll. Fixed pixels + explicit flex-shrink: 0 is bulletproof. */
+    flex: 0 0 60px !important;
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 10px !important;
+    padding: 4px !important;
+    border-width: 1.5px !important;
+    /* Snap the leading edge of each tile to the scroll container's start —
+       so a tap on tile 5 triggers scrollIntoView(inline:center) and lands
+       cleanly with 5 in the middle, 3 & 4 to its left, 6 & 7 to its right. */
+    scroll-snap-align: start;
+    flex-shrink: 0 !important;
+  }
+
+  /* Trust strip — already stacks to 1 col at 720px; shrink the icon tile so
+     rows don't feel oversized on phones. */
+  .trustStrip {
+    padding: 16px;
+    gap: 12px;
+    border-radius: 16px;
+  }
+  .trustStrip span { width: 38px; height: 38px; border-radius: 10px; }
+  .trustStrip span svg { width: 18px; height: 18px; }
+  .trustStrip b { font-size: 0.9rem; }
+  .trustStrip em { font-size: 0.78rem; }
+
+  /* Related products — a 2-col grid felt cramped on phones; swap to a
+     horizontal scroll-snap carousel so cards get more breathing room and
+     users can flick through the list. Peek the next card (~64vw wide) to
+     hint that the row is scrollable. */
+  .relatedGrid {
+    display: flex;
+    grid-template-columns: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-padding-left: 16px;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px;
+    /* Bleed the carousel to the viewport edges so the first card sits
+       flush with the container padding while later cards can peek past
+       the fold. */
+    margin: 0 -16px;
+    padding: 4px 16px 12px;
+    scrollbar-width: none;
+  }
+  .relatedGrid::-webkit-scrollbar { display: none; }
+  .relCard {
+    flex: 0 0 auto;
+    width: 64vw;
+    max-width: 260px;
+    scroll-snap-align: start;
+    border-radius: 14px;
+  }
+  .relBody { padding: 12px 12px 14px; gap: 6px; }
+  .relBody h4 { font-size: 0.88rem; -webkit-line-clamp: 2; line-clamp: 2; }
+  .relFoot b { font-size: 0.95rem; }
+  .relFoot span { font-size: 0.78rem; }
+  .relCategory { font-size: 0.62rem; }
+  .relDiscount {
+    top: 8px;
+    right: 8px;
+    padding: 3px 7px;
+    font-size: 0.65rem;
+  }
+
+  /* Related header — the "View all …" link would wrap into the h2 on phones. */
+  .relatedHead h2 { font-size: 1.35rem; }
+  .relatedViewAll { font-size: 0.82rem; }
+}
+
+/* Very narrow phones (≤ 380px — Galaxy S8, iPhone SE, older Androids). */
+@media (max-width: 380px) {
+  /* Related products stay a horizontal carousel; give cards a bit more of
+     the viewport so the peek doesn't dominate on tiny screens. */
+  .relCard { width: 72vw; }
+  .relBody h4 { font-size: 0.95rem; }
+  /* On very narrow phones (320px iPhone SE) the 60px tile still fits: 5
+     tiles × 60 + 4 gaps × 8 = 332px, container ≈ 288px, 44px overflow —
+     scrolling is enabled even with only 5 images at this width, which is
+     acceptable. Bumping tiles smaller here would harm tap targets. */
+  .price {
+    font-size: 1.7rem;
+  }
 }

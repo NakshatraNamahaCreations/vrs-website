@@ -3,7 +3,8 @@
   overflow: hidden;
   background: var(--gradient-hero);
   color: #cfe6f4;
-  margin-top: 80px;
+  /* Space between the last page section and the trust strip. */
+  margin-top: 120px;
 }
 
 /* ambient decor */
@@ -52,7 +53,8 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 24px;
-  padding: 28px 24px;
+  /* Beefier vertical padding so the strip has room to breathe on its own. */
+  padding: 36px 24px!important;
 }
 .trustItem {
   display: flex;
@@ -122,7 +124,9 @@
   display: grid;
   grid-template-columns: 1.5fr 0.8fr 0.9fr 1.3fr;
   gap: 56px;
-  padding: 80px 24px 56px;
+  /* Extra top padding so the main footer columns feel clearly separated
+     from the trust strip above them. */
+  padding: 40px 24px 64px!important;
   position: relative;
 }
 
@@ -320,7 +324,9 @@
   .top {
     grid-template-columns: 1fr;
     gap: 40px;
-    padding: 60px 24px 40px;
+    /* Keep the extra breathing room above the columns on phones too, just
+       scaled down from the desktop 110px. */
+    padding: 80px 24px 40px;
   }
 }
 
@@ -372,7 +378,7 @@
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 20px;
-  padding: 22px 24px;
+  padding: 22px 24px!important;
   font-size: 0.82rem;
 }
 .bottom p {

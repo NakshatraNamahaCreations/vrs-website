@@ -5,8 +5,14 @@
   background: rgba(4, 27, 48, 0.55);
   backdrop-filter: blur(10px);
   z-index: 200;
-  display: grid;
-  place-items: center;
+  /* Flex + overflow-y: auto lets the overlay scroll when the modal is
+     taller than the viewport (short mobile screens). Combined with
+     `margin: auto` on the modal, the modal stays visually centered when
+     it fits and pins to the top with scrollable overflow when it doesn't. */
+  display: flex;
+  justify-content: center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 20px;
   animation: fadeIn 0.25s ease;
 }
@@ -20,6 +26,9 @@
   position: relative;
   width: 100%;
   max-width: 500px;
+  /* `margin: auto` inside the flex+overflow overlay centers the modal
+     when it fits and lets scroll take over when it doesn't. */
+  margin: auto;
   background: linear-gradient(180deg, #ffffff 0%, #f7fbfe 100%);
   border: 1px solid rgba(15, 127, 191, 0.15);
   border-radius: 24px;
@@ -186,6 +195,7 @@
 .prefix svg { font-size: 1rem; }
 .phoneRow input {
   flex: 1;
+  min-width: 0;
   padding: 14px 16px;
   border: none;
   background: transparent;
@@ -349,8 +359,49 @@
 .terms a:hover { text-decoration: underline; }
 
 @media (max-width: 480px) {
-  .modal { padding: 24px 22px 18px; }
-  .otpBox { font-size: 1.15rem; }
+  .overlay { padding: 12px; }
+  .modal {
+    padding: 22px 18px 16px;
+    border-radius: 20px;
+  }
+  .close {
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    font-size: 1.05rem;
+  }
+  .header {
+    gap: 12px;
+    padding-bottom: 16px;
+  }
+  .logo { width: 42px; height: 42px; border-radius: 12px; }
+  .header b { font-size: 0.98rem; }
+  .header span { font-size: 0.62rem; letter-spacing: 0.14em; }
+  .body { gap: 14px; }
+  .body h3 { font-size: 1.05rem; }
+  .body p { font-size: 0.82rem; }
+  .field { gap: 6px; }
+  .field span { font-size: 0.68rem; letter-spacing: 0.1em; }
+  /* Icon wells eat ~92px of the row on password fields; shrink them so the
+     input still has breathing room on narrow phones. */
+  .inputIcon, .inputAction { width: 40px; font-size: 1rem; }
+  .inputWrap input { padding: 12px 12px; font-size: 0.92rem; }
+  .submit { padding: 13px 18px; font-size: 0.9rem; }
+  .terms { margin-top: 14px; padding-top: 12px; font-size: 0.72rem; }
+  .switchRow { font-size: 0.8rem; }
+  .otpBox { font-size: 1.15rem; height: 46px; }
+  .otpRow { gap: 8px; }
+}
+
+/* Very narrow phones (≤ 360px — Galaxy S8, iPhone SE portrait). */
+@media (max-width: 360px) {
+  .overlay { padding: 8px; }
+  .modal { padding: 18px 14px 14px; border-radius: 16px; }
+  .header b { font-size: 0.92rem; }
+  .inputIcon, .inputAction { width: 36px; }
+  .inputWrap input { padding: 11px 10px; font-size: 0.88rem; }
+  .otpBox { font-size: 1rem; height: 42px; }
 }
 
 /* ============ EMAIL / PASSWORD INPUTS ============ */

@@ -26,15 +26,15 @@ const cards = [
   {
     icon: "email",
     label: "Email us",
-    primary: "hello@vrswaterpurifiers.in",
-    href: "mailto:hello@vrswaterpurifiers.in",
+    primary: "abhishek900815@gmail.com",
+    href: "mailto:abhishek900815@gmail.com",
     sub: "We reply within 6 hours",
   },
   {
     icon: "location",
     label: "Visit us",
-    primary: "RR Nagar, Bangalore",
-    href: "https://maps.google.com/?q=RR+Nagar+Bangalore",
+    primary: "Uttarahalli Main Rd, Poorna Prajna Layout, Bengaluru, Karnataka 560061",
+    href: "https://maps.google.com/?q=71+vaddarapalya%2C+11th+main+7th+cross%2C+Uttarahalli+Main+Rd%2C+Poorna+Prajna+Layout%2C+Bengaluru%2C+Karnataka+560061",
     sub: "Karnataka, India",
     external: true,
   },
@@ -227,7 +227,7 @@ export default function ContactPage() {
                 <span className={styles.sideIcon}><HiOutlineMapPin /></span>
                 <div>
                   <b>Workshop &amp; office</b>
-                  <p>VRS Water Purifiers<br />RR Nagar, Bangalore<br />Karnataka — India</p>
+                  <p>VRS Water Purifiers<br />Uttarahalli Main Rd, Poorna Prajna Layout, Bengaluru, Karnataka 560061</p>
                 </div>
               </div>
 
@@ -237,7 +237,7 @@ export default function ContactPage() {
                   <b>Talk to a specialist</b>
                   <p>
                     <a href="tel:+919008155065">+91 9008155065</a><br />
-                    <a href="mailto:hello@vrswaterpurifiers.in">hello@vrswaterpurifiers.in</a>
+                    <a href="mailto:abhishek900815@gmail.com">abhishek900815@gmail.com</a>
                   </p>
                 </div>
               </div>
